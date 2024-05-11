@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui/dist/semantic.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h1.ui.header {
+            margin-top: 0;
+        }
+        img#avatarImage {
+            max-width: 100%;
+            border-radius: 10px;
+            display: none;
+            margin-top: 20px;
+            transition: opacity 0.3s ease-in-out;
+        }
+        a#downloadButton {
+            display: none;
+            margin-top: 10px;
+        }
+        img#avatarImage.centered {
+            display: block;
+            margin: 0 auto;
+        }
+        .ui.input {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        input#userIdInput {
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        p#avatarMessage {
+            margin-top: 20px;
+        }
+        button#getAvatarButton {
+            border-radius: 5px;
+        }
+    </style>
+    <title>Discord Avatar Lookup</title>
+</head>
+<body>
+
+<div class="ui container">
+    <h1 class="ui header">Discord Avatar Lookup</h1>
+    <div class="ui input">
+        <input id="userIdInput" type="text" placeholder="Enter your user ID">
+        <button id="getAvatarButton" class="ui primary button">Click</button>
+    </div>
+    <div id="avatarContainer" class="ui segment show" style="display: none;">
+        <img id="avatarImage" src="" alt="Avatar" class="centered">
+        <p id="avatarMessage"></p>
+        <a id="downloadButton" class="ui primary icon button">
+            <i class="download icon"></i>
+            Download Avatar
+        </a>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/semantic-ui/dist/semantic.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#getAvatarButton').click(function() {
+            var userId = $('#userIdInput').val();
+
+            if (!userId) {
+                alert("Please enter a valid User ID.");
+                return;
+            }
+
+            var apiUrl = `https://discordlookup.mesavirep.xyz/v1/user/${userId}`;
+
+            $.get(apiUrl, function(data) {
+                if(data.avatar && data.avatar.link) {
+
+                    var avatarUrl = data.avatar.link;
+
+                    $('#avatarMessage').text(""); // Clear the avatar message
+                    $('#avatarImage').attr('src', avatarUrl).css('display', 'block'); // Show the avatar
+                    $('#avatarContainer').addClass('show').show(); // Show the avatar container
+                    $('#downloadButton').show(); // Set the download link and show the button
+                    // Spacing cause why not
+                    $('#downloadButton').click(function () {
+                        downloadAvatar(avatarUrl);
+                    });
+                } else {
+                    $('#avatarMessage').text("This user does not have an avatar set!"); // Display avatar message
+                    $('#avatarImage').hide(); // Hide the banner image
+                    $('#avatarContainer').show(); // Show the banner container
+                    $('#downloadButton').hide(); // Hide the download button
+                }
+            }).fail(function() {
+                alert("Failed to fetch user data. Please check the User ID or try again later.");
+            });
+        });
+
+        function downloadAvatar(url) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.responseType = "blob";
+            xhr.onload = function() {
+                var blob = xhr.response;
+                var fileName = "avatar.png";
+                var link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.download = fileName;
+                link.click();
+            };
+            xhr.send();
+        }
+    });
+</script>
+</body>
+</html>
